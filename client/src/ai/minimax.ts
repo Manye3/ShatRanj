@@ -96,8 +96,16 @@ function minimax(chess: Chess, depth: number, alpha: number, beta: number, maxim
 }
 
 export function computeBestMove(chess: Chess, level = 2): string | null {
-  const depth = ({ 1: 1, 2: 2, 3: 3 } as Record<number, number>)[level] || 2
+  const depth = ({ 1: 1, 2: 2, 3: 3, 4: 4 } as Record<number, number>)[level] || 2
   const copy = new Chess(chess.fen())
+
+  // For very low-level bots, occasionally make random moves (simulates blunders)
+  if (level <= 1 && Math.random() < 0.3) {
+    const moves = copy.moves()
+    if (moves.length > 0) return moves[Math.floor(Math.random() * moves.length)]
+  }
+
   const result = minimax(copy, depth, -Infinity, Infinity, copy.turn() === 'w')
   return result.move
 }
+

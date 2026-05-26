@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { User, GameRecord } from '@/types'
 import * as api from '@/lib/api'
-import { Trophy, TrendingDown, Minus, Clock } from 'lucide-react'
+import { Trophy, TrendingDown, Minus, Clock, ChevronDown, ChevronUp, Brain, Loader2, Download, Sparkles } from 'lucide-react'
 
 export default function Profile() {
   const { username } = useParams<{ username: string }>()
@@ -11,6 +11,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [expandedGameId, setExpandedGameId] = useState<string | null>(null)
+  const [coachAnalysis, setCoachAnalysis] = useState<Record<string, string>>({})
+  const [coachLoading, setCoachLoading] = useState<string | null>(null)
+  const [selectedMoveIndex, setSelectedMoveIndex] = useState<Record<string, number>>({})
 
   useEffect(() => {
     if (!username) return
@@ -31,6 +35,43 @@ export default function Profile() {
     setGames(g.games)
     setPage(p)
     setTotalPages(g.pages)
+  }
+
+  const toggleExpand = (gameId: string) => {
+    setExpandedGameId(prev => prev === gameId ? null : gameId)
+  }
+
+  const handleExplainMove = async (game: GameRecord, moveIdx: number, useAgent = false) => {
+    const key = `${game._id}-${moveIdx}${useAgent ? '-agent' : ''}`
+    if (coachAnalysis[key]) return // Already analyzed
+    setCoachLoading(key)
+    try {
+      const result = await api.explainMove(game.pgn, moveIdx, useAgent)
+      setCoachAnalysis(prev => ({ ...prev, [key]: result.analysis }))
+    } catch {
+      setCoachAnalysis(prev => ({ ...prev, [key]: 'Unable to analyze this move right now. Please try again.' }))
+    }
+    setCoachLoading(null)
+  }
+
+  const downloadPgn = (game: GameRecord) => {
+    const blob = new Blob([game.pgn], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `game-${game._id}.pgn`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const parseMoves = (pgn: string): string[] => {
+    if (!pgn) return []
+    return pgn
+      .replace(/\d+\.\s*/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')
+      .filter(m => m && !m.includes('.') && !['1-0', '0-1', '1/2-1/2', '*'].includes(m))
   }
 
   if (loading) return (
@@ -93,17 +134,126 @@ export default function Profile() {
               const lost = (isWhite && g.result === 'black_win') || (!isWhite && g.result === 'white_win')
               const delta = isWhite ? g.whiteRatingDelta : g.blackRatingDelta
               const opponent = isWhite ? g.black.username : g.white.username
+              const isExpanded = expandedGameId === g._id
+              const moves = parseMoves(g.pgn)
+              const currentMoveIdx = selectedMoveIndex[g._id] ?? -1
 
               return (
-                <div key={g._id} className="flex items-center gap-3 p-3 bg-dark-bg rounded-lg border border-dark-border/50 text-sm">
-                  <div className={`w-2 h-2 rounded-full ${won ? 'bg-green-500' : lost ? 'bg-red-500' : 'bg-yellow-500'}`} />
-                  <span className="text-gray-400">vs</span>
-                  <span className="font-medium flex-1">{opponent}</span>
-                  <span className="text-xs text-gray-500">{g.timeControl}</span>
-                  <span className="text-xs text-gray-500">{g.moves} moves</span>
-                  <span className={`text-xs font-mono font-bold ${delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {delta >= 0 ? '+' : ''}{delta}
-                  </span>
+                <div key={g._id} className="bg-dark-bg rounded-lg border border-dark-border/50 overflow-hidden">
+                  {/* Collapsed row */}
+                  <button
+                    onClick={() => toggleExpand(g._id)}
+                    className="w-full flex items-center gap-3 p-3 text-sm hover:bg-dark-hover/30 transition-colors"
+                  >
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${won ? 'bg-green-500' : lost ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                    <span className="text-gray-400">vs</span>
+                    <span className="font-medium flex-1 text-left">{opponent}</span>
+                    <span className="text-xs text-gray-500">{g.timeControl}</span>
+                    <span className="text-xs text-gray-500">{g.moves} moves</span>
+                    <span className={`text-xs font-mono font-bold ${delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {delta >= 0 ? '+' : ''}{delta}
+                    </span>
+                    {isExpanded ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+                  </button>
+
+                  {/* Expanded panel */}
+                  {isExpanded && (
+                    <div className="border-t border-dark-border/50 p-4 space-y-4 animate-fade-in">
+                      {/* Game details */}
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className={`px-2 py-1 rounded ${won ? 'bg-green-500/10 text-green-400' : lost ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                          {won ? 'Victory' : lost ? 'Defeat' : 'Draw'}
+                        </span>
+                        <span className="px-2 py-1 rounded bg-dark-card text-gray-400">{g.termination}</span>
+                        <span className="px-2 py-1 rounded bg-dark-card text-gray-400">{g.timeControl}</span>
+                        <button onClick={() => downloadPgn(g)} className="px-2 py-1 rounded bg-dark-card text-gray-400 hover:text-gold transition-colors flex items-center gap-1">
+                          <Download size={10} /> PGN
+                        </button>
+                      </div>
+
+                      {/* Move list */}
+                      {moves.length > 0 && (
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-500 mb-2">Moves (click to analyze)</h4>
+                          <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-dark-card rounded-lg">
+                            {moves.map((move, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  setSelectedMoveIndex(prev => ({ ...prev, [g._id]: idx }))
+                                }}
+                                className={`px-1.5 py-0.5 rounded text-xs font-mono transition-all ${
+                                  currentMoveIdx === idx
+                                    ? 'bg-gold/20 text-gold border border-gold/30'
+                                    : 'text-gray-400 hover:text-white hover:bg-dark-hover/50'
+                                }`}
+                              >
+                                {idx % 2 === 0 && <span className="text-gray-600 mr-0.5">{Math.floor(idx / 2) + 1}.</span>}
+                                {move}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI Coach Analysis */}
+                      {currentMoveIdx >= 0 && (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleExplainMove(g, currentMoveIdx, false)}
+                              disabled={coachLoading !== null}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 border border-gold/30 rounded-lg text-xs text-gold hover:bg-gold/20 transition-all disabled:opacity-50"
+                            >
+                              {coachLoading === `${g._id}-${currentMoveIdx}` ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : (
+                                <Brain size={12} />
+                              )}
+                              Explain Move (RAG)
+                            </button>
+                            <button
+                              onClick={() => handleExplainMove(g, currentMoveIdx, true)}
+                              disabled={coachLoading !== null}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 rounded-lg text-xs text-purple-400 hover:bg-purple-500/20 transition-all disabled:opacity-50"
+                            >
+                              {coachLoading === `${g._id}-${currentMoveIdx}-agent` ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : (
+                                <Sparkles size={12} />
+                              )}
+                              Deep Analysis (Agent)
+                            </button>
+                          </div>
+
+                          {/* Analysis result */}
+                          {(coachAnalysis[`${g._id}-${currentMoveIdx}`] || coachAnalysis[`${g._id}-${currentMoveIdx}-agent`]) && (
+                            <div className="bg-dark-card border border-dark-border rounded-lg p-3 animate-fade-in">
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <Brain size={12} className="text-gold" />
+                                <span className="text-xs font-medium text-gold">AI Coach Analysis</span>
+                                <span className="text-[10px] text-gray-600">Move {currentMoveIdx + 1}: {moves[currentMoveIdx]}</span>
+                              </div>
+                              <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                {coachAnalysis[`${g._id}-${currentMoveIdx}-agent`] || coachAnalysis[`${g._id}-${currentMoveIdx}`]}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* AI Summary (Phase 2 placeholder) */}
+                      {g.aiSummary && (
+                        <div className="bg-dark-card border border-gold/20 rounded-lg p-3">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <Sparkles size={12} className="text-gold" />
+                            <span className="text-xs font-medium text-gold">AI Match Summary</span>
+                          </div>
+                          <p className="text-sm text-gray-300 leading-relaxed">{g.aiSummary}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}

@@ -4,6 +4,7 @@ const http = require('http');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
+const { initVectorStore } = require('./utils/vectorDb');
 const authRoutes = require('./routes/authRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -42,9 +43,12 @@ const io = new Server(server, {
 
 setupSockets(io);
 
-// Start
+// Start server and initialize RAG vector store
 const PORT = process.env.PORT || 4000;
 connectDB(process.env.MONGO_URI)
+  .then(() => {
+    return initVectorStore();
+  })
   .then(() => {
     server.listen(PORT, () => {
       console.log(`
@@ -60,7 +64,10 @@ connectDB(process.env.MONGO_URI)
   })
   .catch((err) => {
     console.error('DB connection failed:', err.message);
-    server.listen(PORT, () => {
-      console.log(`Server running on ${PORT} (DB not connected — some features unavailable)`);
+    // Still initialize vector store and start server without DB
+    initVectorStore().then(() => {
+      server.listen(PORT, () => {
+        console.log(`Server running on ${PORT} (DB not connected — some features unavailable)`);
+      });
     });
   });
