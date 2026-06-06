@@ -17,7 +17,15 @@ ShatRanj is a next-generation real-time multiplayer chess platform. It integrate
 - **Blunder Simulation:** Configurable difficulty scaling which mimics human mistakes by selecting suboptimal moves based on a probability curve rather than raw minimax outputs.
 
 ### 3. Generative AI Core (The "Wow" Factor)
-- 🎭 **Bot Arena (LLM Personalities):** Features 10+ distinct computer opponents (modeled after champions like Vishy Anand, Beth Harmon, Magnus Carlsen, Hikaru Nakamura, and custom personalities like "Danny Rensch" and "Chess Coach"). Powered by **Gemini-1.5-Flash** via system prompts, these bots react in-game with dynamic, in-character commentary based on board events (checks, captures, blunders, and checkmates).
+- 🎭 **Bot Arena (16 LLM Personalities):** Features 16 distinct AI opponents spanning every difficulty tier — from "Drunk Uncle" (600 Elo) to Magnus Carlsen (2820 Elo). Each bot is powered by **Gemini-1.5-Flash** via unique system prompts and reacts in-game with dynamic, in-character commentary based on board events (checks, captures, blunders, checkmates).
+
+  | Tier | Bots |
+  |------|------|
+  | **Beginner** (600–800) | 🍺 Drunk Uncle, 😅 Beginner Bob |
+  | **Casual** (1500–1800) | 🎲 Street Hustler Danny, 😂 Samay Raina, 📚 GM Coach |
+  | **Intermediate** (2050–2400) | 📹 Levy Rozman (GothamChess), ♛ Beth Harmon |
+  | **Advanced** (2650–2720) | 🎩 Mikhail Tal, 🎙️ Vidit Gujrathi |
+  | **Grandmaster** (2750–2820) | ⚡ Praggnanandhaa, 🚀 Hikaru, 🧊 Gukesh, 🐯 Anand, 🧠 Fischer, 🦁 Kasparov, 👑 Magnus |
 - 🧠 **RAG-Powered Chess Coach:** Performs real-time semantic vector search over a custom strategic chess corpus. Using **Google Gemini Embeddings (`text-embedding-004`)** and LangChain's **MemoryVectorStore**, the system retrieves relevant tactical concepts (e.g., "Sicilian Defense ideas," "knight fork patterns") matching the game's PGN and generates concise, context-aware coaching advice.
 - 🕵️ **Autonomous Analyst Agent (LangGraph):** Orchestrates an autonomous post-game analyst agent using **LangGraph** to execute ReAct tool-calling loops. The agent invokes two custom tools:
   1. `engine_evaluator`: Reconstructs the board state FEN and runs backend minimax evaluations (centipawn scoring).
@@ -90,7 +98,7 @@ graph TD
 │   │   ├── agentTools.js   # LangGraph ReAct Agent & custom tool setups
 │   │   ├── geminiClient.js # LangChain, Google Gemini API & Embeddings client
 │   │   ├── vectorDb.js     # In-memory Vector database initialization
-│   │   └── personalityData.js # Bot persona prompts
+│   │   └── personalityData.js # 16 bot persona configs & system prompts
 │   └── server.js           # Server bootstrap & API routes
 ```
 
