@@ -157,7 +157,7 @@ function minimax(chess, depth, alpha, beta, isMaximizing) {
  * Level 1 = depth 1 (easy), Level 2 = depth 2, Level 3 = depth 3 (hard)
  */
 function computeBestMove(chess, level = 2) {
-  const depthMap = { 1: 1, 2: 2, 3: 3 };
+  const depthMap = { 1: 1, 2: 2, 3: 3, 4: 4 };
   const depth = depthMap[level] || 2;
   const copy = new Chess(chess.fen());
   const isMaximizing = copy.turn() === 'w';

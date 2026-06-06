@@ -53,6 +53,12 @@ const MOCK_CHAT = {
   danny: "Oooh, you didn't see that coming, did you? Five bucks says you can't handle what's next!",
   coach: 'Good developing move! Notice how this helps control the center and connects your pieces.',
   bob: "Wait, the horsey moves in an L, right? I meant to do that... I think.",
+  kasparov: "You cannot survive this pressure. This is what real chess looks like.",
+  tal: "The pieces are begging me to sacrifice them. Let the magic begin!",
+  fischer: "That move is simply wrong. Chess demands precision — not guesses.",
+  gotham: "AND THERE IT IS! Ladies and gentlemen, we have a GAME!",
+  samay: "Bhai ye kya ho gaya?! Content content content!",
+  uncle: "That move is from my secret playbook. Back in my day, we played REAL chess.",
 };
 
 /**
@@ -72,6 +78,12 @@ function getMockChat(personalityId, gameContext) {
       danny: 'Good game, good game! Double or nothing next round?',
       coach: 'Well played! Let\'s review the key moments from this game.',
       bob: 'Wait, it\'s over? Did I win? ...Oh. Well, that was fun anyway!',
+      kasparov: 'The board speaks for itself. That was domination.',
+      tal: 'What a beautiful chaos that was! Every sacrifice was worth it.',
+      fischer: 'The result was inevitable from the opening. Precision always wins.',
+      gotham: 'WHAT A GAME! If you enjoyed this, smash that like button!',
+      samay: 'Bhai... GG. Blame the internet lag, not me.',
+      uncle: 'I let you win that one. Next time I won\'t go easy on you.',
     };
     return endings[personalityId] || 'Good game!';
   }

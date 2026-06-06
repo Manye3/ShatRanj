@@ -53,16 +53,22 @@ export default function PlayAI() {
       .then(setPersonalities)
       .catch(() => {
         setPersonalities([
-          { id: 'vishy', name: 'Viswanathan Anand', title: 'The Legend', emoji: '🐯', rating: 2780, description: 'Five-time World Champion. Elegant, fast, positional.', depth: 3 },
-          { id: 'pragg', name: 'Praggnanandhaa R', title: 'The Prodigy', emoji: '⚡', rating: 2750, description: 'India\'s teenage prodigy. Aggressive and fearless.', depth: 3 },
-          { id: 'gukesh', name: 'Gukesh D', title: 'The Ice Man', emoji: '🧊', rating: 2760, description: 'Cold-blooded precision under pressure.', depth: 3 },
-          { id: 'vidit', name: 'Vidit Gujrathi', title: 'Streamer GM', emoji: '🎙️', rating: 2720, description: 'Strong GM who loves streaming. Funny and tactical.', depth: 3 },
-          { id: 'magnus', name: 'Magnus Carlsen', title: 'The GOAT', emoji: '👑', rating: 2820, description: 'Highest-rated ever. Endgame wizard.', depth: 4 },
-          { id: 'hikaru', name: 'Hikaru Nakamura', title: 'Speed Demon', emoji: '🚀', rating: 2750, description: 'King of online blitz. Twitch legend.', depth: 3 },
-          { id: 'beth', name: 'Beth Harmon', title: 'The Queen\'s Gambit', emoji: '♛', rating: 2400, description: 'Fierce 1960s prodigy. Brilliant attacker.', depth: 2 },
-          { id: 'danny', name: 'Street Hustler Danny', title: 'Park Shark', emoji: '🎲', rating: 1500, description: 'Tricks, traps, and trash talk.', depth: 1 },
-          { id: 'coach', name: 'GM Coach', title: 'The Teacher', emoji: '📚', rating: 1800, description: 'Patient and instructive. Explains every move.', depth: 2 },
+          { id: 'uncle', name: 'Drunk Uncle', title: 'The Family Legend', emoji: '🍺', rating: 600, description: 'Claims he was a state champion. Hangs his queen every game.', depth: 1 },
           { id: 'bob', name: 'Beginner Bob', title: 'The Rookie', emoji: '😅', rating: 800, description: 'Just learned chess. Makes lots of mistakes.', depth: 1 },
+          { id: 'danny', name: 'Street Hustler Danny', title: 'Park Shark', emoji: '🎲', rating: 1500, description: 'Tricks, traps, and trash talk.', depth: 1 },
+          { id: 'samay', name: 'Samay Raina', title: 'The Comedian', emoji: '😂', rating: 1600, description: 'More jokes than good moves, but always entertaining.', depth: 1 },
+          { id: 'coach', name: 'GM Coach', title: 'The Teacher', emoji: '📚', rating: 1800, description: 'Patient and instructive. Explains every move.', depth: 2 },
+          { id: 'gotham', name: 'Levy Rozman', title: 'GothamChess', emoji: '📹', rating: 2050, description: 'The internet\'s favorite chess teacher. Dramatic and fun.', depth: 2 },
+          { id: 'beth', name: 'Beth Harmon', title: 'The Queen\'s Gambit', emoji: '♛', rating: 2400, description: 'Fierce 1960s prodigy. Brilliant attacker.', depth: 2 },
+          { id: 'tal', name: 'Mikhail Tal', title: 'The Magician', emoji: '🎩', rating: 2650, description: 'Wild sacrifices and dazzling combinations.', depth: 3 },
+          { id: 'vidit', name: 'Vidit Gujrathi', title: 'Streamer GM', emoji: '🎙️', rating: 2720, description: 'Strong GM who loves streaming. Funny and tactical.', depth: 3 },
+          { id: 'pragg', name: 'Praggnanandhaa R', title: 'The Prodigy', emoji: '⚡', rating: 2750, description: 'India\'s teenage prodigy. Aggressive and fearless.', depth: 3 },
+          { id: 'hikaru', name: 'Hikaru Nakamura', title: 'Speed Demon', emoji: '🚀', rating: 2750, description: 'King of online blitz. Twitch legend.', depth: 3 },
+          { id: 'gukesh', name: 'Gukesh D', title: 'The Ice Man', emoji: '🧊', rating: 2760, description: 'Cold-blooded precision under pressure.', depth: 3 },
+          { id: 'vishy', name: 'Viswanathan Anand', title: 'The Legend', emoji: '🐯', rating: 2780, description: 'Five-time World Champion. Elegant, fast, positional.', depth: 3 },
+          { id: 'fischer', name: 'Bobby Fischer', title: 'The Genius', emoji: '🧠', rating: 2785, description: 'Perfectionist. Demands nothing less than flawless chess.', depth: 4 },
+          { id: 'kasparov', name: 'Garry Kasparov', title: 'The Beast', emoji: '🦁', rating: 2800, description: 'Most aggressive World Champion. Zero mercy.', depth: 4 },
+          { id: 'magnus', name: 'Magnus Carlsen', title: 'The GOAT', emoji: '👑', rating: 2820, description: 'Highest-rated ever. Endgame wizard.', depth: 4 },
         ])
       })
       .finally(() => setLoadingPersonalities(false))
@@ -299,11 +305,21 @@ export default function PlayAI() {
           {loadingPersonalities ? (
             <div className="flex justify-center py-16"><Loader2 className="text-gold animate-spin" size={32} /></div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {personalities.map(bot => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {personalities.map(bot => {
+                const tier = bot.rating < 800 ? { label: 'Beginner', color: 'text-green-400 bg-green-400/10' }
+                  : bot.rating < 1400 ? { label: 'Easy', color: 'text-emerald-400 bg-emerald-400/10' }
+                  : bot.rating < 2000 ? { label: 'Casual', color: 'text-blue-400 bg-blue-400/10' }
+                  : bot.rating < 2500 ? { label: 'Intermediate', color: 'text-yellow-400 bg-yellow-400/10' }
+                  : bot.rating < 2750 ? { label: 'Advanced', color: 'text-orange-400 bg-orange-400/10' }
+                  : { label: 'Grandmaster', color: 'text-red-400 bg-red-400/10' }
+                return (
                 <button key={bot.id} onClick={() => startGame(bot)}
                   className="group bg-dark-card border border-dark-border rounded-xl p-4 text-left hover:border-gold/40 hover:bg-dark-card/80 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-                  <div className="text-3xl mb-2">{bot.emoji}</div>
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-3xl">{bot.emoji}</span>
+                    <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${tier.color}`}>{tier.label}</span>
+                  </div>
                   <h3 className="font-semibold text-sm text-white group-hover:text-gold transition-colors leading-tight">{bot.name}</h3>
                   <p className="text-xs text-gray-500 mt-0.5">{bot.title}</p>
                   <div className="flex items-center gap-1.5 mt-2">
@@ -312,7 +328,8 @@ export default function PlayAI() {
                   </div>
                   <p className="text-[11px] text-gray-600 mt-2 leading-relaxed line-clamp-2">{bot.description}</p>
                 </button>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
